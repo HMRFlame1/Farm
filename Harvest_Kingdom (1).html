@@ -1,0 +1,2598 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- 
+  Harvest Kingdom - Modified HTML
+  IMPORTANT: To see the beautiful custom farm background in the Farm tab, 
+  save the attached farm scene image (the big pixel art with house, barn, cows, crops, pond) 
+  as "image.png" in the SAME FOLDER as this .html file.
+  The My Profile button now opens the Kingdom Stats modal (moved from coins).
+  Day/Night cycle works in header + Farm uses the fixed custom scene.
+  The "What happened in the kingdom today?" modal is fully implemented in the Farm tab.
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harvest Kingdom • Cozy Farming Adventure</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap');
+        
+        :root {
+            --soil-brown: #8B5A2B;
+            --dark-soil: #5D4037;
+            --leaf-green: #4CAF50;
+            --warm-cream: #FFF8E7;
+            --text-dark: #3E2723;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            background: linear-gradient(#a8d5ba, #c8e6c9);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(to right, #2E7D32, #4CAF50);
+            color: white;
+            padding: 10px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1480px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            text-shadow: 3px 3px 0 #1B5E20;
+            letter-spacing: 1px;
+        }
+        
+        .game-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255,255,255,0.15);
+            padding: 5px 16px;
+            border-radius: 9999px;
+            font-size: 11px;
+        }
+        
+        .coins-display {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #FFF8E7;
+            color: #3E2723;
+            padding: 5px 12px;
+            border-radius: 9999px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        
+        .coins-display img {
+            width: 22px;
+            height: 22px;
+            image-rendering: pixelated;
+        }
+        
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #FFF8E7;
+            color: #3E2723;
+            padding: 5px 14px;
+            border-radius: 9999px;
+            font-weight: bold;
+            font-size: 11px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+            border: 2px solid #5D4037;
+            transition: transform 0.1s;
+        }
+        .profile-btn:hover {
+            transform: scale(1.05);
+            background: #EFEBE9;
+        }
+        
+        .tab img {
+            height: 17px;
+            width: auto;
+            vertical-align: middle;
+            image-rendering: pixelated;
+            margin-right: 6px;
+        }
+        
+        /* NEW TAB BAR */
+        .tab-bar {
+            background: #2E7D32;
+            padding: 6px 20px;
+            display: flex;
+            gap: 6px;
+            max-width: 1480px;
+            margin: 0 auto;
+        }
+        
+        .tab {
+            background: #1B5E20;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        
+        .tab.active {
+            background: #FFF8E7;
+            color: #2E7D32;
+            box-shadow: 0 -2px 0 #1B5E20;
+        }
+        
+        .tab:hover:not(.active) {
+            background: #388E3C;
+        }
+        
+        .main-container {
+            max-width: 1480px;
+            margin: 15px auto;
+            padding: 0 15px;
+            display: flex;
+            gap: 20px;
+        }
+        
+        .farm-section {
+            flex: 1;
+            min-width: 620px;
+        }
+        
+        .farm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .next-day-btn {
+            background: linear-gradient(#FF9800, #F57C00);
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #E65100;
+        }
+        
+        .farm-area {
+            position: relative;
+            width: 100%;
+            height: 520px;
+            border: 8px solid #5D4037;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.7s ease;
+            /* Farm tab now uses this beautiful custom background image */
+            background-image: url('https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/j1fi7_orig.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .farm-grid {
+            position: absolute;
+            top: 9%;
+            left: 9%;
+            right: 9%;
+            bottom: 9%;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 8px;
+            padding: 8px;
+            background: rgba(139, 90, 43, 0.18);
+            border-radius: 10px;
+        }
+        
+        .plot {
+            background: rgba(139, 90, 43, 0.9);
+            border: 4px solid #3E2723;
+            border-radius: 6px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+            transition: transform 0.1s ease;
+            overflow: hidden;
+        }
+        
+        .plot:hover {
+            transform: scale(1.08);
+            z-index: 10;
+        }
+        
+        .plot .crop-img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 62%;
+            max-height: 62%;
+            image-rendering: pixelated;
+            pointer-events: none;
+        }
+        
+        .plot.watered {
+            box-shadow: inset 0 0 10px rgba(33, 150, 243, 0.6);
+        }
+        
+        .growth-bar {
+            position: absolute;
+            bottom: 4px;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: rgba(255,255,255,0.35);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .growth-fill {
+            height: 100%;
+            background: #66BB6A;
+        }
+        
+        .toolbar {
+            background: #FFF8E7;
+            border: 5px solid #5D4037;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        
+        .seed-btn, .tool-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border: 3px solid #5D4037;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            cursor: pointer;
+            box-shadow: 0 2px 0 #3E2723;
+        }
+        
+        .seed-btn.active, .tool-btn.active {
+            background: #C8E6C9;
+            border-color: #2E7D32;
+        }
+        
+        .sidebar {
+            flex: 0 0 295px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        
+        .card {
+            background: #FFF8E7;
+            border: 5px solid #5D4037;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 5px 14px rgba(0, 0, 0, 0.18);
+        }
+        
+        .pete-card img {
+            width: 95px;
+            height: 95px;
+            image-rendering: pixelated;
+            border: 4px solid #5D4037;
+            border-radius: 50%;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.65);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show { display: flex; }
+        
+        .modal-content {
+            background: #FFF8E7;
+            border: 7px solid #5D4037;
+            border-radius: 14px;
+            width: 92%;
+            max-width: 520px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+        }
+        
+        .modal-header {
+            background: #4CAF50;
+            color: white;
+            padding: 11px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border: 3px solid #5D4037;
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin-bottom: 5px;
+        }
+        
+        .sell-btn {
+            font-size: 8px;
+            padding: 2px 6px;
+            background: #FF9800;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .sleep-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.88);
+            z-index: 250;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+        }
+        
+        .sleep-overlay.show { display: flex; }
+        
+        .status-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2E7D32;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 9999px;
+            font-size: 11px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 300;
+            display: none;
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Ensure Farm tab uses flex layout ONLY when active (prevents farm grid/sidebar leaking into House/Store/Journal) */
+        #tab-farm.active {
+            display: flex !important;
+            gap: 18px;
+            width: 100%;
+        }
+        
+        .quest-item {
+            background: white;
+            border: 3px solid #5D4037;
+            border-radius: 6px;
+            padding: 7px 9px;
+            margin-bottom: 5px;
+            font-size: 9px;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/d97c2336-2e8f-43b3-b2f0-03b27504a709_orig.png" alt="Harvest Kingdom" style="height:56px; image-rendering: pixelated;">
+            </div>
+            
+            <div class="game-info">
+                <span id="year-display">Year 1</span>
+                <span style="opacity:0.5;">•</span>
+                <span id="season-display"><img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/cloudy_orig.png" style="width:14px; height:14px; image-rendering:pixelated; vertical-align:middle; margin-right:4px;">SPRING</span>
+                <span style="opacity:0.5;">•</span>
+                <span id="day-display">Day 1</span>
+                
+                <span onclick="toggleDayNight()" style="cursor:pointer; display:flex; align-items:center; gap:4px;">
+                    <img id="time-icon" src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/coin_orig.png" style="width:18px;height:18px;">
+                    <span id="time-display">DAY</span>
+                </span>
+                
+                <span id="weather-display" style="background:rgba(255,255,255,0.25); padding:1px 7px; border-radius:9999px; font-size:10px;">☀️ Clear</span>
+                
+                <span id="level-display" style="background:rgba(255,215,0,0.35); padding:1px 8px; border-radius:9999px; font-size:10px;">LVL 1</span>
+                
+                <span id="game-clock" style="background:rgba(255,255,255,0.25); padding:1px 8px; border-radius:9999px; font-size:10px; display:flex; align-items:center; gap:5px;">
+                    <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/clock_orig.png" style="width:14px; height:14px; image-rendering: pixelated; vertical-align: middle;" alt="Clock">
+                    <span id="game-time-text" style="color:#c62828; font-weight:bold;">06:00</span>
+                </span>
+            </div>
+            
+            <div class="coins-display">
+                <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/coin_orig.png" alt="">
+                <span id="coins-display">100</span>
+            </div>
+            
+            <div class="profile-btn" onclick="showStatsModal()">
+                □ My Profile
+            </div>
+            
+            <div class="profile-btn" onclick="manualSave()" style="background:#2E7D32; color:white; border:2px solid #1B5E20; padding:5px 12px; display:flex; align-items:center; gap:6px;">
+                <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/2824710_orig.png" style="height:18px; width:auto; vertical-align:middle; image-rendering: pixelated;" alt="Save">
+                <span>Save</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- TOP TABS -->
+    <div class="tab-bar">
+        <button class="tab" data-tab="house" onclick="switchTab('house')">
+            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/house_orig.png" 
+                 style="height:17px; width:auto; vertical-align:middle; margin-right:6px; image-rendering:pixelated;">
+            House
+        </button>
+        <button class="tab active" data-tab="farm" onclick="switchTab('farm')">
+            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/farms_orig.png" 
+                 style="height:17px; width:auto; vertical-align:middle; margin-right:6px; image-rendering:pixelated;">
+            Farm
+        </button>
+        <button class="tab" data-tab="store" onclick="switchTab('store')">
+            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/ster_orig.png" 
+                 style="height:17px; width:auto; vertical-align:middle; margin-right:6px; image-rendering:pixelated;">
+            Store
+        </button>
+        <button class="tab" data-tab="journal" onclick="switchTab('journal')">
+            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/jounral_orig.png" 
+                 style="height:17px; width:auto; vertical-align:middle; margin-right:6px; image-rendering:pixelated;">
+            Journal
+        </button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-container">
+        
+        <!-- HOUSE TAB (separate from farm) -->
+        <div id="tab-house" class="tab-content" style="flex:1; max-width:820px; margin: 0 auto;">
+            <div class="card" style="padding: 0; background: #FFF8E7; border: 8px solid #5D4037; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); overflow: hidden; max-width: 720px; margin: 0 auto;">
+                
+                <!-- Cycling Day/Night Scene Box -->
+                <div style="background: #f5f0e6; padding: 16px 16px 8px; text-align: center;">
+                    <div id="house-scene-box" 
+                         style="width: 100%; max-width: 520px; height: 210px; margin: 0 auto; border: 6px solid #5D4037; border-radius: 10px; background-size: cover; background-position: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); transition: background-image 0.6s ease;">
+                    </div>
+                </div>
+                
+                <!-- Title & Description -->
+                <div style="padding: 16px 24px 8px; text-align: center; background: #FFF8E7;">
+                    <h2 style="color: #5D4037; font-size: 20px; margin: 0 0 6px; letter-spacing: 1px;">YOUR KINGDOM COTTAGE</h2>
+                    <p style="font-size: 11px; color: #795548; max-width: 480px; margin: 0 auto 12px; line-height: 1.4;">
+                        A cozy royal home nestled beside the fields.<br>
+                        Pete the Farmer lives just across the path.
+                    </p>
+                </div>
+                
+                <!-- Pete Card -->
+                <div style="padding: 0 24px 20px; display: flex; justify-content: center; background: #FFF8E7;">
+                    <div style="background: white; border: 5px solid #5D4037; border-radius: 14px; padding: 16px 20px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                        <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+                            <div style="position: relative; display: inline-block;">
+                                <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/farmer-frotn_orig.png" 
+                                     style="width: 92px; height: 92px; image-rendering: pixelated; border: 5px solid #5D4037; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.25);">
+                            </div>
+                        </div>
+                        <h3 style="margin: 4px 0 2px; font-size: 15px; color: #3E2723;">
+                            Pete the Farmer 
+                            <span style="font-size: 11px; color: #795548;">(Friendship Lvl <span id="house-pete-level">1</span>)</span>
+                        </h3>
+                        <button onclick="talkToPete()" 
+                                style="width: 100%; margin-top: 10px; background: #4CAF50; color: white; border: 4px solid #2E7D32; padding: 9px 0; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: bold;">
+                            □ Chat with Pete
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kingdom Legacy / Main Quests -->
+                <div style="padding: 16px 24px; background: #f8f4eb; border-top: 4px solid #5D4037;">
+                    <h3 style="margin: 0 0 10px; font-size: 14px; color: #3E2723; text-align: center;">□ Kingdom Legacy</h3>
+                    <div id="main-quests-list" style="font-size: 11px; line-height: 1.5;">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <div style="margin-top: 10px; font-size: 9px; color: #795548; text-align: center;">
+                        Complete these goals to restore the kingdom's former glory.
+                    </div>
+                </div>
+                
+                <!-- Expansions Footer -->
+                <div style="background: #EFEBE9; padding: 10px 16px; font-size: 10px; color: #5D4037; text-align: center; border-top: 4px solid #5D4037;">
+                    <strong>Expansions Owned:</strong> <span id="house-expansions">Tool Shed: No • Extra Field: No • Barn: No</span><br>
+                    <span style="font-size: 9px; opacity: 0.85;">Visit the Store to expand your kingdom!</span>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- FARM TAB -->
+        <div id="tab-farm" class="tab-content active" style="flex:1; gap:18px; width:100%;">
+            
+            <div class="farm-section" style="flex:1;">
+                <div class="farm-header">
+                    <h2 style="font-size:16px;">□ Your Kingdom Fields</h2>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="showDailyReport()" style="background:#1565C0; color:white; border:none; padding:8px 14px; font-family:'Press Start 2P', monospace; font-size:10px; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/questionm_orig.png" style="width:16px; height:16px; vertical-align:middle; image-rendering:pixelated;">
+                            <span>What happened today?</span>
+                        </button>
+                        <button class="next-day-btn" onclick="sleepSequence()" style="display:flex; align-items:center; gap:6px;">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/faafsafs_orig.png" style="width:18px; height:18px; vertical-align:middle; image-rendering:pixelated;">
+                            <span>Sleep &amp; Advance</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="farm-area" class="farm-area">
+                    <div id="farm-grid" class="farm-grid"></div>
+                </div>
+                
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <div style="font-size:9px; color:#5D4037;">TOOLS &amp; SEEDS</div>
+                        <button onclick="deselectMode()" style="font-size:8px; padding:2px 7px; background:#EFEBE9; border:2px solid #5D4037; border-radius:4px; cursor:pointer;">Clear</button>
+                    </div>
+                    
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <!-- Seeds -->
+                        <button class="seed-btn" data-type="tomato" onclick="selectPlantMode('tomato')">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/seed1_orig.png" style="width:22px;height:22px;">
+                            <span>Tomato <span id="seed-tomato-count">5</span></span>
+                        </button>
+                        <button class="seed-btn" data-type="carrot" onclick="selectPlantMode('carrot')">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/seed2_orig.png" style="width:22px;height:22px;">
+                            <span>Carrot <span id="seed-carrot-count">5</span></span>
+                        </button>
+                        <button class="seed-btn" data-type="wheat" onclick="selectPlantMode('wheat')">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/seed3_orig.png" style="width:22px;height:22px;">
+                            <span>Wheat <span id="seed-wheat-count">5</span></span>
+                        </button>
+                        
+                        <!-- Tools -->
+                        <button class="tool-btn" id="water-btn" onclick="selectWaterMode()" style="margin-left:auto;">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/can_orig.png" style="width:22px;height:22px;">
+                            <span>Water <span id="water-uses">20</span>/20</span>
+                        </button>
+                        <button class="tool-btn" id="scythe-btn" onclick="harvestAllReady()">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/syth_orig.png" style="width:22px;height:22px;">
+                            <span>Scythe</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Inventory -->
+                <div class="card">
+                    <h3 style="font-size:11px; margin-bottom:8px;">□ Inventory</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:9px;">
+                        <div style="background:white; border:2px solid #5D4037; border-radius:5px; padding:5px; text-align:center;">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/tom_orig.png" style="width:26px;height:26px;"><br>
+                            <span id="inv-tomato">0</span> Tomato<br>
+                            <button class="sell-btn" onclick="sellCrop('tomato')">Sell 8¢</button>
+                        </div>
+                        <div style="background:white; border:2px solid #5D4037; border-radius:5px; padding:5px; text-align:center;">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/car_orig.png" style="width:26px;height:26px;"><br>
+                            <span id="inv-carrot">0</span> Carrot<br>
+                            <button class="sell-btn" onclick="sellCrop('carrot')">Sell 5¢</button>
+                        </div>
+                        <div style="background:white; border:2px solid #5D4037; border-radius:5px; padding:5px; text-align:center; grid-column:span 2;">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/wheat_orig.png" style="width:26px;height:26px;"><br>
+                            <span id="inv-wheat">0</span> Wheat &nbsp;
+                            <button class="sell-btn" onclick="sellCrop('wheat')">Sell 3¢</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Daily Quests -->
+                <div class="card">
+                    <h3 style="font-size:11px;">□ Daily Quests</h3>
+                    <div id="quests-list" style="font-size:9px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- STORE TAB -->
+        <div id="tab-store" class="tab-content" style="flex:1; max-width:820px;">
+            <div class="card" style="padding:16px; background: linear-gradient(#FFF8E7, #EFEBE9); border-color:#5D4037;">
+                <!-- Cash Register Header -->
+                <div style="background:#5D4037; color:#FFF8E7; padding:10px 14px; border-radius:8px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
+                    <div>
+                        <div style="font-size:15px; font-weight:bold;">□ PETE'S GENERAL STORE</div>
+                        <div style="font-size:9px; opacity:0.85;">Kingdom Cash Register • Open Daily</div>
+                    </div>
+                    <div style="text-align:right; font-size:10px;">
+                        <div>□ Coins: <span id="store-coins">100</span></div>
+                        <div style="font-size:8px; opacity:0.8;">Deliveries handled by royal post</div>
+                    </div>
+                </div>
+                
+                <div style="display:flex; gap:18px; flex-wrap:wrap;">
+                    
+                    <!-- SEEDS SECTION -->
+                    <div style="flex:1; min-width:280px;">
+                        <div style="background:#8B5A2B; color:white; padding:5px 10px; border-radius:6px 6px 0 0; font-size:11px; display:flex; align-items:center; gap:6px;">
+                            □ <strong>SEED RACK</strong>
+                        </div>
+                        <div style="border:3px solid #5D4037; border-top:none; border-radius:0 0 8px 8px; padding:10px; background:white;">
+                            
+                            <div class="shop-item" style="margin-bottom:8px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/seed1_orig.png" style="width:28px;height:28px;">
+                                    <div style="flex:1;">
+                                        <strong>Tomato Seeds</strong><br>
+                                        <span style="font-size:8px; color:#795548;">Grows best Spring/Summer • Juicy &amp; valuable</span>
+                                    </div>
+                                </div>
+                                <div style="text-align:right; font-size:10px; margin-top:4px;">
+                                    <span style="font-weight:bold; color:#2E7D32;">10¢</span> each<br>
+                                    <button onclick="buyWithDelivery('seed','tomato',1,false)" style="font-size:8px; padding:3px 7px; margin-top:2px;">Standard (1 day)</button>
+                                    <button onclick="buyWithDelivery('seed','tomato',1,true)" style="font-size:8px; padding:3px 7px; background:#FF9800;">Express +3¢</button>
+                                    <button onclick="buyWithDelivery('seed','tomato',5,false)" style="font-size:8px; padding:3px 7px;">x5 Standard</button>
+                                </div>
+                            </div>
+                            
+                            <div class="shop-item" style="margin-bottom:8px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/seed2_orig.png" style="width:28px;height:28px;">
+                                    <div style="flex:1;">
+                                        <strong>Carrot Seeds</strong><br>
+                                        <span style="font-size:8px; color:#795548;">Spring/Autumn • Sweet &amp; reliable</span>
+                                    </div>
+                                </div>
+                                <div style="text-align:right; font-size:10px; margin-top:4px;">
+                                    <span style="font-weight:bold; color:#2E7D32;">8¢</span> each<br>
+                                    <button onclick="buyWithDelivery('seed','carrot',1,false)" style="font-size:8px; padding:3px 7px; margin-top:2px;">Standard (1 day)</button>
+                                    <button onclick="buyWithDelivery('seed','carrot',1,true)" style="font-size:8px; padding:3px 7px; background:#FF9800;">Express +2¢</button>
+                                    <button onclick="buyWithDelivery('seed','carrot',5,false)" style="font-size:8px; padding:3px 7px;">x5 Standard</button>
+                                </div>
+                            </div>
+                            
+                            <div class="shop-item">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/seed3_orig.png" style="width:28px;height:28px;">
+                                    <div style="flex:1;">
+                                        <strong>Wheat Seeds</strong><br>
+                                        <span style="font-size:8px; color:#795548;">Summer/Autumn • Hardy grain</span>
+                                    </div>
+                                </div>
+                                <div style="text-align:right; font-size:10px; margin-top:4px;">
+                                    <span style="font-weight:bold; color:#2E7D32;">6¢</span> each<br>
+                                    <button onclick="buyWithDelivery('seed','wheat',1,false)" style="font-size:8px; padding:3px 7px; margin-top:2px;">Standard (1 day)</button>
+                                    <button onclick="buyWithDelivery('seed','wheat',1,true)" style="font-size:8px; padding:3px 7px; background:#FF9800;">Express +2¢</button>
+                                    <button onclick="buyWithDelivery('seed','wheat',5,false)" style="font-size:8px; padding:3px 7px;">x5 Standard</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- UPGRADES & EXPANSIONS -->
+                    <div style="flex:1; min-width:280px;">
+                        <div style="background:#1565C0; color:white; padding:5px 10px; border-radius:6px 6px 0 0; font-size:11px; display:flex; align-items:center; gap:6px;">
+                            ⚒️ <strong>TOOLS &amp; EXPANSIONS</strong>
+                        </div>
+                        <div style="border:3px solid #5D4037; border-top:none; border-radius:0 0 8px 8px; padding:10px; background:white; font-size:10px;">
+                            
+                            <!-- Tool Upgrades -->
+                            <div style="margin-bottom:6px; padding-bottom:6px; border-bottom:1px dashed #A5D6A7;">
+                                <strong style="color:#1565C0;">Tool Upgrades</strong>
+                            </div>
+                            
+                            <div class="shop-item" style="margin-bottom:6px; padding:6px;">
+                                <div><strong>Better Watering Can</strong><br><span style="font-size:8px;">+5 daily water uses forever</span></div>
+                                <div style="text-align:right; font-size:9px;">
+                                    <span style="font-weight:bold;">150¢</span><br>
+                                    <button onclick="buyWithDelivery('upgrade','waterCan',1,false)" style="font-size:8px; padding:2px 6px;">Standard</button>
+                                    <button onclick="buyWithDelivery('upgrade','waterCan',1,true)" style="font-size:8px; padding:2px 6px; background:#FF9800;">Express +45¢</button>
+                                </div>
+                            </div>
+                            
+                            <div class="shop-item" style="margin-bottom:6px; padding:6px;">
+                                <div><strong>Golden Scythe</strong><br><span style="font-size:8px;">Chance to harvest 1-2 extra crops</span></div>
+                                <div style="text-align:right; font-size:9px;">
+                                    <span style="font-weight:bold;">280¢</span><br>
+                                    <button onclick="buyWithDelivery('upgrade','scythe',1,false)" style="font-size:8px; padding:2px 6px;">Standard</button>
+                                    <button onclick="buyWithDelivery('upgrade','scythe',1,true)" style="font-size:8px; padding:2px 6px; background:#FF9800;">Express +84¢</button>
+                                </div>
+                            </div>
+                            
+                            <div class="shop-item" style="margin-bottom:8px; padding:6px;">
+                                <div><strong>Farmer’s Almanac</strong><br><span style="font-size:8px;">+Growth speed bonus every season</span></div>
+                                <div style="text-align:right; font-size:9px;">
+                                    <span style="font-weight:bold;">420¢</span><br>
+                                    <button onclick="buyWithDelivery('upgrade','almanac',1,false)" style="font-size:8px; padding:2px 6px;">Standard</button>
+                                    <button onclick="buyWithDelivery('upgrade','almanac',1,true)" style="font-size:8px; padding:2px 6px; background:#FF9800;">Express +126¢</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Farm Expansions -->
+                            <div style="margin:8px 0 4px; padding-top:6px; border-top:1px dashed #A5D6A7;">
+                                <strong style="color:#8B5A2B;">□ Farm Expansions</strong><br>
+                                <span style="font-size:8px; color:#795548;">Expand your kingdom's agricultural power</span>
+                            </div>
+                            
+                            <div class="shop-item" style="margin-bottom:5px; padding:6px;">
+                                <div><strong>□️ Tool Shed</strong><br><span style="font-size:8px;">+5 max water uses • Faster daily work</span></div>
+                                <div style="text-align:right; font-size:9px;">
+                                    <span style="font-weight:bold;">200¢</span><br>
+                                    <button onclick="buyWithDelivery('expansion','shed',1,false)" style="font-size:8px; padding:2px 6px;">Standard (1d)</button>
+                                    <button onclick="buyWithDelivery('expansion','shed',1,true)" style="font-size:8px; padding:2px 6px; background:#FF9800;">Express +60¢</button>
+                                </div>
+                            </div>
+                            
+                            <div class="shop-item" style="margin-bottom:5px; padding:6px;">
+                                <div><strong>□ Extra Field</strong><br><span style="font-size:8px;">+15% crop growth chance • Your 2nd farm!</span></div>
+                                <div style="text-align:right; font-size:9px;">
+                                    <span style="font-weight:bold;">450¢</span><br>
+                                    <button onclick="buyWithDelivery('expansion','extraField',1,false)" style="font-size:8px; padding:2px 6px;">Standard (1d)</button>
+                                    <button onclick="buyWithDelivery('expansion','extraField',1,true)" style="font-size:8px; padding:2px 6px; background:#FF9800;">Express +135¢</button>
+                                </div>
+                            </div>
+                            
+                            <div class="shop-item" style="padding:6px;">
+                                <div><strong>□ Barn</strong><br><span style="font-size:8px;">+20% sell price on all crops forever</span></div>
+                                <div style="text-align:right; font-size:9px;">
+                                    <span style="font-weight:bold;">350¢</span><br>
+                                    <button onclick="buyWithDelivery('expansion','barn',1,false)" style="font-size:8px; padding:2px 6px;">Standard (1d)</button>
+                                    <button onclick="buyWithDelivery('expansion','barn',1,true)" style="font-size:8px; padding:2px 6px; background:#FF9800;">Express +105¢</button>
+                                </div>
+                            </div>
+                            
+                            <!-- NEW: Livestock (important animals feature) -->
+                            <div style="margin:8px 0 4px; padding-top:6px; border-top:1px dashed #A5D6A7;">
+                                <strong style="color:#8B5A2B;">□ Livestock Market</strong><br>
+                                <span style="font-size:8px; color:#795548;">Animals produce valuable goods every day!</span>
+                            </div>
+                            
+                            <div class="shop-item" style="margin-bottom:4px; padding:5px;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/2002611_orig.png" style="width:22px;height:22px; image-rendering:pixelated;">
+                                    <div style="flex:1;"><strong>Chicken</strong><br><span style="font-size:7px;">Produces eggs daily</span></div>
+                                </div>
+                                <div style="text-align:right; font-size:9px;">
+                                    <span style="font-weight:bold;">60¢</span><br>
+                                    <button onclick="buyAnimal('chicken')" style="font-size:8px; padding:2px 8px; background:#4CAF50; color:white; border:none; border-radius:3px; cursor:pointer;">Buy</button>
+                                </div>
+                            </div>
+                            
+                            <div class="shop-item" style="margin-bottom:4px; padding:5px;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/2395796_orig.png" style="width:22px;height:22px; image-rendering:pixelated;">
+                                    <div style="flex:1;"><strong>Cow</strong><br><span style="font-size:7px;">Produces milk daily</span></div>
+                                </div>
+                                <div style="text-align:right; font-size:9px;">
+                                    <span style="font-weight:bold;">140¢</span><br>
+                                    <button onclick="buyAnimal('cow')" style="font-size:8px; padding:2px 8px; background:#4CAF50; color:white; border:none; border-radius:3px; cursor:pointer;">Buy</button>
+                                </div>
+                            </div>
+                            
+                            <div class="shop-item" style="padding:5px;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/8334207_orig.png" style="width:22px;height:22px; image-rendering:pixelated;">
+                                    <div style="flex:1;"><strong>Pig</strong><br><span style="font-size:7px;">Produces pork daily</span></div>
+                                </div>
+                                <div style="text-align:right; font-size:9px;">
+                                    <span style="font-weight:bold;">95¢</span><br>
+                                    <button onclick="buyAnimal('pig')" style="font-size:8px; padding:2px 8px; background:#4CAF50; color:white; border:none; border-radius:3px; cursor:pointer;">Buy</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PENDING DELIVERIES -->
+                <div style="margin-top:14px; background:#FFF8E7; border:3px solid #5D4037; border-radius:8px; padding:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <strong style="font-size:11px;">□ PENDING DELIVERIES <span id="delivery-count" style="background:#FF9800; color:white; padding:1px 6px; border-radius:999px; font-size:9px;">0</span></strong>
+                        <span style="font-size:8px; color:#795548;">Pay to rush delivery instantly</span>
+                    </div>
+                    <div id="deliveries-list" style="font-size:9px; max-height:90px; overflow:auto;"></div>
+                    <div style="font-size:8px; color:#795548; margin-top:4px; text-align:center;">
+                        Standard deliveries arrive after the next Sleep &amp; Advance. Express = instant!
+                    </div>
+                </div>
+                
+                <div style="margin-top:10px; font-size:9px; color:#795548; text-align:center; font-style:italic;">
+                    "Everything delivered by royal carrier pigeon... or pay extra for express!" — Pete
+                </div>
+            </div>
+        </div>
+        
+        <!-- JOURNAL TAB -->
+        <div id="tab-journal" class="tab-content" style="flex:1; max-width:820px;">
+            <div class="card" style="padding:18px;">
+                <h2 style="color:#2E7D32; margin-bottom:12px;">□ Kingdom Journal</h2>
+                <p style="font-size:10px; color:#795548; margin-bottom:10px;">Record your royal farming legacy. Entries are added automatically on key events.</p>
+                
+                <div style="background:#FFF8E7; border:3px solid #5D4037; border-radius:8px; padding:12px; max-height:320px; overflow-y:auto; font-size:10px; line-height:1.6; margin-bottom:10px;">
+                    <div id="journal-entries">No entries yet. Sleep or harvest to begin your story...</div>
+                </div>
+                
+                <button onclick="writeJournalPrompt()" style="background:#4CAF50; color:white; border:3px solid #2E7D32; padding:8px 16px; border-radius:6px; font-size:10px; cursor:pointer; width:100%;">
+                    ✍️ Write New Journal Entry
+                </button>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- PETE MODAL -->
+    <div id="pete-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/farmer-frotn_orig.png" style="width:60px;height:60px; border-radius:50%;">
+                <div>
+                    <h2 style="margin:0; font-size:17px;">Pete the Farmer</h2>
+                    <p style="margin:0; font-size:10px; opacity:0.9;">Friendship Level <span id="pete-level-modal">1</span></p>
+                </div>
+            </div>
+            <div class="modal-body" style="padding:16px;">
+                <div id="pete-dialogue" style="margin-bottom:12px; font-size:12px; min-height:50px; color: #000000; font-weight: 500;">
+                    Howdy! What can I do for you today?
+                </div>
+                
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
+                    <button onclick="peteGiveAdvice()" style="flex:1; padding:6px; font-size:9px; background:#E8F5E9; border:2px solid #4CAF50; border-radius:5px; cursor:pointer;">□ Advice</button>
+                    <button onclick="peteTellJoke()" style="flex:1; padding:6px; font-size:9px; background:#E8F5E9; border:2px solid #4CAF50; border-radius:5px; cursor:pointer;">□ Joke</button>
+                    <button onclick="peteGiveGift()" style="flex:1; padding:6px; font-size:9px; background:#E8F5E9; border:2px solid #4CAF50; border-radius:5px; cursor:pointer;">□ Gift</button>
+                </div>
+                
+                <div style="font-size:10px; color:#795548; text-align:center;">
+                    Visit the <strong>Store tab</strong> anytime to buy seeds and upgrades!
+                </div>
+            </div>
+            <div style="padding:10px; background:#EFEBE9; text-align:right; border-radius:0 0 10px 10px;">
+                <button onclick="closePeteModal()" style="background:#795548; color:white; border:none; padding:6px 16px; border-radius:5px; font-size:10px; cursor:pointer;">Thanks Pete!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DAILY KINGDOM REPORT MODAL -->
+    <div id="daily-report-modal" class="modal">
+        <div class="modal-content" style="max-width:520px;">
+            <div class="modal-header" style="background:#1565C0;">
+                <span style="font-size:24px;">□</span>
+                <div>
+                    <h2 style="margin:0; font-size:16px;">What happened in the kingdom today?</h2>
+                    <p style="margin:0; font-size:10px; opacity:0.9;" id="report-time">Day X • SPRING • DAYTIME</p>
+                </div>
+            </div>
+            <div style="padding:16px; font-size:11px; line-height:1.5;">
+                <div style="margin-bottom:12px;">
+                    <strong>□️ Weather:</strong> <span id="report-weather"></span><br>
+                    <strong>□ Time:</strong> It is currently <span id="report-time-of-day"></span> in the Kingdom.
+                </div>
+                
+                <div style="background:#FFF8E7; border:2px solid #5D4037; border-radius:6px; padding:10px; margin-bottom:12px;">
+                    <strong>□ Farm Status</strong><br>
+                    <span id="report-farm-status"></span>
+                </div>
+                
+                <div style="margin-bottom:12px;">
+                    <strong>□ Quests Progress</strong><br>
+                    <div id="report-quests" style="font-size:10px;"></div>
+                </div>
+                
+                <div>
+                    <strong>□ Kingdom News</strong><br>
+                    <div id="report-events" style="font-size:10px; color:#5D4037; min-height:40px;"></div>
+                </div>
+            </div>
+            <div style="padding:10px; background:#EFEBE9; text-align:right; border-radius:0 0 10px 10px;">
+                <button onclick="closeDailyReport()" style="background:#1565C0; color:white; border:none; padding:6px 18px; border-radius:5px; font-size:10px; cursor:pointer;">Close Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PETE ENCOURAGEMENT MODAL -->
+    <div id="encouragement-modal" class="modal">
+        <div class="modal-content" style="max-width:420px;">
+            <div class="modal-header" style="background:#4CAF50;">
+                <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/farmer-frotn_orig.png" style="width:55px;height:55px; border-radius:50%; border:3px solid #2E7D32;">
+                <div>
+                    <h2 style="margin:0; font-size:18px;">Pete the Farmer</h2>
+                    <p style="margin:0; font-size:11px; opacity:0.9;">Your loyal friend</p>
+                </div>
+            </div>
+            <div style="padding:20px; text-align:center; font-size:14px; line-height:1.5; min-height:80px;" id="encouragement-text">
+                Great work today, Your Majesty!
+            </div>
+            <div style="padding:12px; background:#EFEBE9; text-align:center; border-radius:0 0 12px 12px;">
+                <button onclick="closeEncouragementModal()" style="background:#4CAF50; color:white; border:none; padding:8px 24px; border-radius:6px; font-size:12px; cursor:pointer;">Thanks Pete! □</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAT MODAL -->
+    <div id="cat-modal" class="modal">
+        <div class="modal-content" style="max-width:420px;">
+            <div class="modal-header" style="background:#FF9800;">
+                <img id="cat-modal-img" src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/cart_orig.png" style="width:70px;height:70px; border-radius:50%; border:4px solid #E65100; image-rendering:pixelated;">
+                <div>
+                    <h2 style="margin:0; font-size:18px;" id="cat-modal-title">A Stray Cat!</h2>
+                    <p style="margin:0; font-size:11px; opacity:0.9;" id="cat-modal-subtitle">Meow~</p>
+                </div>
+            </div>
+            <div style="padding:18px; font-size:13px; line-height:1.5; text-align:center;" id="cat-modal-body">
+                You found a friendly stray cat near the fields!
+            </div>
+            <div style="padding:12px; background:#FFF8E7; text-align:center; border-radius:0 0 12px 12px; display:flex; gap:10px; justify-content:center;" id="cat-modal-buttons">
+                <!-- Buttons populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SLEEP OVERLAY -->
+    <div id="sleep-overlay" class="sleep-overlay">
+        <div>
+            <div style="font-size:52px; margin-bottom:8px; letter-spacing:12px; opacity:0.9;">Z Z Z z z z z...</div>
+            <div style="font-size:22px;">Zzzzz...</div>
+            <div style="font-size:11px; margin-top:8px; opacity:0.7;">The kingdom rests peacefully...</div>
+        </div>
+    </div>
+
+    <div id="toast" class="status-toast"></div>
+
+    <!-- PLAYER NAME ENTRY MODAL (First Time Setup - Pokémon style) -->
+    <div id="name-entry-modal" class="modal">
+        <div class="modal-content" style="max-width: 460px;">
+            <div class="modal-header" style="background: #4CAF50;">
+                <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/farmer-frotn_orig.png" 
+                     style="width:60px; height:60px; border-radius:50%; border:3px solid #2E7D32;">
+                <div>
+                    <h2 style="margin:0; font-size:18px;">Pete the Farmer</h2>
+                    <p style="margin:2px 0 0; font-size:11px; opacity:0.9;">Welcome to the Kingdom!</p>
+                </div>
+            </div>
+            
+            <div style="padding: 20px 24px; text-align: center; color: #3E2723;">
+                <p style="font-size:14px; margin-bottom: 16px; line-height:1.5; color: #3E2723;">
+                    Howdy there, traveler!<br>
+                    I'm Pete the Farmer. It's a pleasure to meet you!<br><br>
+                    Before we begin restoring this kingdom together...<br><br>
+                    <strong style="color: #3E2723;">What gamertag shall I call you by?</strong>
+                </p>
+                
+                <input type="text" id="player-name-input" 
+                       placeholder="Enter your gamertag..." 
+                       style="width: 80%; padding: 10px; font-size: 15px; border: 4px solid #5D4037; border-radius: 8px; text-align: center; font-family: 'Press Start 2P', monospace;"
+                       maxlength="16">
+                
+                <div style="margin-top: 18px; font-size: 11px; color: #795548;">
+                    This will be how I address you from now on. Like in the old days!
+                </div>
+            </div>
+            
+            <div style="padding: 14px; background: #EFEBE9; text-align: center; border-radius: 0 0 12px 12px;">
+                <button onclick="submitPlayerName()" 
+                        style="background: #4CAF50; color: white; border: 4px solid #2E7D32; padding: 10px 32px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: bold;">
+                    That's my gamertag!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESET GAME MODAL (nice confirmation) -->
+    <div id="reset-modal" class="modal">
+        <div class="modal-content" style="max-width: 420px; text-align: center;">
+            <div class="modal-header" style="background: #c62828;">
+                <span style="font-size: 28px;">⚠️</span>
+                <h2 style="margin: 0; font-size: 18px; color: white;">Reset Kingdom?</h2>
+            </div>
+            <div style="padding: 20px 24px; font-size: 13px; line-height: 1.5; color: #3E2723;">
+                <p><strong>This will permanently delete ALL your progress.</strong></p>
+                <p style="margin-top: 12px; font-size: 12px;">
+                    Everything will be lost:<br>
+                    • Coins, crops &amp; inventory<br>
+                    • Livestock (chickens, cows, pigs)<br>
+                    • Animal products, upgrades &amp; expansions<br>
+                    • Journal, quests &amp; friendship with Pete<br>
+                    • Your gamertag and all kingdom data
+                </p>
+                <p style="margin-top: 14px; color: #c62828; font-size: 12px;">
+                    This action <strong>cannot be undone</strong>.
+                </p>
+            </div>
+            <div style="padding: 14px; background: #EFEBE9; display: flex; gap: 12px; justify-content: center; border-radius: 0 0 12px 12px;">
+                <button onclick="closeResetModal()" 
+                        style="background: #795548; color: white; border: 3px solid #5D4037; padding: 10px 24px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: bold;">
+                    Cancel
+                </button>
+                <button onclick="doResetGame()" 
+                        style="background: #c62828; color: white; border: 3px solid #b71c1c; padding: 10px 28px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: bold;">
+                    Yes, Reset Everything
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JOURNAL WRITE ENTRY MODAL -->
+    <div id="journal-entry-modal" class="modal">
+        <div class="modal-content" style="max-width:480px;">
+            <div class="modal-header" style="background:#4CAF50;">
+                <span style="font-size:22px;">✍️</span>
+                <h2 style="margin:0; font-size:16px;">Write New Journal Entry</h2>
+            </div>
+            <div style="padding:20px;">
+                <p style="font-size:11px; color:#795548; margin-bottom:8px;">Record what happened in your kingdom today. This will be saved to your legacy.</p>
+                <textarea id="journal-text-input" 
+                          style="width:100%; height:130px; padding:14px; font-family:'Press Start 2P', monospace; font-size:12px; border:4px solid #5D4037; border-radius:8px; resize:vertical; background:#FFF8E7;"
+                          placeholder="The crops are thriving... Pete gave me great advice today..."></textarea>
+            </div>
+            <div style="padding:14px; background:#EFEBE9; text-align:right; border-radius:0 0 12px 12px; display:flex; gap:10px; justify-content:flex-end;">
+                <button onclick="closeJournalModal()" 
+                        style="background:#795548; color:white; border:none; padding:9px 18px; border-radius:6px; font-size:11px; cursor:pointer;">
+                    Cancel
+                </button>
+                <button onclick="submitJournalEntry()" 
+                        style="background:#4CAF50; color:white; border:none; padding:9px 22px; border-radius:6px; font-size:11px; cursor:pointer; font-weight:bold;">
+                    Save to Journal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== GAME STATE ====================
+        let plots = [];
+        let inventory = { seeds: {tomato:5, carrot:5, wheat:5}, crops: {tomato:0, carrot:0, wheat:0}, coins: 100 };
+        let season = 'spring', day = 1, year = 1, isNight = false, weather = 'clear';
+        let waterUses = 20, maxWaterUses = 20;
+        let currentMode = 'default';
+        let farmerLevel = 1, totalCoinsEarned = 100, totalCropsHarvested = 0, totalDaysPlayed = 1, peteFriendship = 1;
+        let bestHarvest = {tomato:0, carrot:0, wheat:0};
+        let upgrades = {waterCan:false, scythe:false, almanac:false};
+        let dailyQuests = [];
+        let deliveries = [];
+        let expansions = {shed: false, barn: false, extraField: false};
+        let numFarms = 1;
+        let growthBonus = 0;
+        let sellMultiplier = 1;
+        let journalEntries = [];
+        let lastTalkedDay = 1;
+        let hasCat = false;
+        let catTreatsGiven = 0;
+        let playerName = "Your Majesty";
+        
+        // New: In-game clock (1 real second = 1 in-game minute)
+        let gameHour = 6, gameMinute = 0;
+        
+        // Livestock & Animal Products (important new feature)
+        let livestock = {chicken: 0, cow: 0, pig: 0};
+        let animalProducts = {egg: 0, milk: 0, pork: 0};
+
+        // ==================== MAIN QUESTLINE (Kingdom Restoration) ====================
+        let mainQuests = [
+            {
+                id: 'reclaim_fields',
+                title: 'Reclaim the Fields',
+                description: 'Plant and harvest your first crops to begin restoring the kingdom.',
+                target: 5,
+                progress: 0,
+                completed: false,
+                reward: '10 coins + Pete friendship +1'
+            },
+            {
+                id: 'expand_kingdom',
+                title: 'Expand the Kingdom',
+                description: 'Purchase your first farm expansion from the Store.',
+                target: 1,
+                progress: 0,
+                completed: false,
+                reward: 'Tool Shed or Extra Field'
+            },
+            {
+                id: 'befriend_pete',
+                title: "Win Pete's Trust",
+                description: 'Build a strong friendship with Pete the Farmer.',
+                target: 4,
+                progress: 0,
+                completed: false,
+                reward: 'Special gift from Pete'
+            },
+            {
+                id: 'royal_harvest',
+                title: 'The Royal Harvest',
+                description: 'Harvest a total of 50 crops to prove your skill.',
+                target: 50,
+                progress: 0,
+                completed: false,
+                reward: 'Golden Scythe discount + Legacy Points'
+            },
+            {
+                id: 'crown_the_kingdom',
+                title: 'Crown the Kingdom',
+                description: 'Fully restore the kingdom by completing all expansions and reaching Level 8.',
+                target: 1,
+                progress: 0,
+                completed: false,
+                reward: 'Ending + Special Title'
+            }
+        ];
+        
+        const seasons = ['spring','summer','autumn','winter'];
+        const seasonEmojis = {spring:'□', summer:'☀️', autumn:'□', winter:'❄️'};
+        const cropSeasons = {tomato:['spring','summer'], carrot:['spring','autumn'], wheat:['summer','autumn']};
+        const cropPrices = {tomato:8, carrot:5, wheat:3};
+        const seedPrices = {tomato:10, carrot:8, wheat:6};
+        
+        const IMAGES = {
+            coin: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/coin_orig.png',
+            waterCan: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/can_orig.png',
+            moon: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/faafsafs_orig.png',
+            scythe: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/syth_orig.png',
+            pete: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/farmer-frotn_orig.png',
+            cat: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/cart_orig.png',
+            pig: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/8334207_orig.png',
+            cow: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/2395796_orig.png',
+            chicken: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/2002611_orig.png',
+            apple: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/pngtree-apple-pixel-icon-png-image-6115207_orig.png',
+            appleTree: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/appletree_orig.png',
+            seeds: {
+                tomato: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/seed1_orig.png',
+                carrot: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/seed2_orig.png',
+                wheat: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/seed3_orig.png'
+            },
+            crops: {
+                tomato: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/tom_orig.png',
+                carrot: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/car_orig.png',
+                wheat: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/wheat_orig.png',
+                apple: 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/pngtree-apple-pixel-icon-png-image-6115207_orig.png'
+            }
+        };
+        
+        const BG_URLS = {
+            'spring-day-clear': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/0clmc_orig.jpg',
+            'summer-day-clear': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/cmisr_orig.jpg',
+            'autumn-day-clear': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/vktxr_orig.jpg',
+            'winter-day-clear': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/qejkp_orig.jpg',
+            'spring-night-clear': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/jypdh_orig.jpg',
+            'summer-night-clear': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/jtgic_orig.jpg',
+            'autumn-night-clear': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/rwevh_orig.jpg',
+            'winter-night-clear': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/p65sy_orig.jpg',
+            'spring-day-rain': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/zm9cf_orig.jpg',
+            'summer-day-rain': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/yhgjd_orig.jpg',
+            'autumn-day-rain': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/plnhd_orig.jpg',
+            'winter-day-snow': 'https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/fjehu_orig.jpg'
+        };
+        
+        // ==================== SAVE / LOAD ====================
+        function saveGame() {
+            const data = { plots, inventory, season, day, year, isNight, weather, waterUses, maxWaterUses,
+                farmerLevel, totalCoinsEarned, totalCropsHarvested, totalDaysPlayed, peteFriendship,
+                bestHarvest, upgrades, dailyQuests, deliveries, expansions, numFarms, growthBonus, sellMultiplier,
+                journalEntries, lastTalkedDay, hasCat, catTreatsGiven, mainQuests, playerName,
+                gameHour, gameMinute, livestock, animalProducts };
+            localStorage.setItem('harvestKingdomSave', JSON.stringify(data));
+        }
+        
+        function loadGame() {
+            const saved = localStorage.getItem('harvestKingdomSave');
+            if (!saved) return false;
+            try {
+                const d = JSON.parse(saved);
+                Object.assign(window, d);
+                if (!plots || plots.length !== 24) {
+                    plots = Array(24).fill(null).map(() => ({type:null, stage:0, watered:false, plantedDay:0}));
+                }
+                if (!deliveries) deliveries = [];
+                if (!expansions) expansions = {shed:false, barn:false, extraField:false};
+                if (!journalEntries) journalEntries = [];
+                if (typeof numFarms === 'undefined') numFarms = 1;
+                if (typeof growthBonus === 'undefined') growthBonus = 0;
+                if (typeof sellMultiplier === 'undefined') sellMultiplier = 1;
+                if (typeof lastTalkedDay === 'undefined') lastTalkedDay = 1;
+                if (typeof playerName === 'undefined' || !playerName) playerName = "Your Majesty";
+                if (typeof gameHour === 'undefined') gameHour = 6;
+                if (typeof gameMinute === 'undefined') gameMinute = 0;
+                if (!livestock) livestock = {chicken: 0, cow: 0, pig: 0};
+                if (!animalProducts) animalProducts = {egg: 0, milk: 0, pork: 0};
+                if (!mainQuests || mainQuests.length === 0) {
+                    // Reset to default if corrupted
+                    mainQuests = [
+                        {id:'reclaim_fields', title:'Reclaim the Fields', description:'Plant and harvest your first crops.', target:5, progress:0, completed:false, reward:'10 coins + Pete friendship +1'},
+                        {id:'expand_kingdom', title:'Expand the Kingdom', description:'Purchase your first farm expansion.', target:1, progress:0, completed:false, reward:'Tool Shed or Extra Field'},
+                        {id:'befriend_pete', title:"Win Pete's Trust", description:'Build a strong friendship with Pete.', target:4, progress:0, completed:false, reward:'Special gift from Pete'},
+                        {id:'royal_harvest', title:'The Royal Harvest', description:'Harvest a total of 50 crops.', target:50, progress:0, completed:false, reward:'Golden Scythe discount'},
+                        {id:'crown_the_kingdom', title:'Crown the Kingdom', description:'Complete all expansions and reach Level 8.', target:1, progress:0, completed:false, reward:'Special Ending'}
+                    ];
+                }
+                return true;
+            } catch(e) { return false; }
+        }
+        
+        // ==================== INIT ====================
+        function initGame() {
+            const grid = document.getElementById('farm-grid');
+            grid.innerHTML = '';
+            
+            const loaded = loadGame();
+            
+            if (!loaded) {
+                plots = [];
+                for (let i = 0; i < 24; i++) {
+                    plots.push({type:null, stage:0, watered:false, plantedDay:0});
+                }
+                // Demo crops
+                plots[5] = {type:'tomato', stage:2, watered:true, plantedDay:1};
+                plots[11] = {type:'carrot', stage:3, watered:false, plantedDay:1};
+                plots[17] = {type:'wheat', stage:1, watered:true, plantedDay:1};
+                plots[20] = {type:'tomato', stage:3, watered:true, plantedDay:1};
+            }
+            
+            // Create smaller plots (6x4 grid)
+            for (let i = 0; i < 24; i++) {
+                const el = document.createElement('div');
+                el.className = 'plot';
+                el.dataset.index = i;
+                el.addEventListener('click', () => handlePlotClick(i));
+                grid.appendChild(el);
+            }
+            
+            if (dailyQuests.length === 0) generateDailyQuests();
+            applyUpgrades();
+            
+            updateBackground();
+            updateUI();
+            updateQuestsUI();
+            checkMainQuestProgress();
+            
+            if (!loaded || playerName === "Your Majesty" || !playerName) {
+                // First time (or reset) - show the starting conversation to enter gamertag (Pokémon style)
+                setTimeout(() => {
+                    const nameModal = document.getElementById('name-entry-modal');
+                    if (nameModal) {
+                        nameModal.classList.add('show');
+                        // Focus the input
+                        setTimeout(() => {
+                            const input = document.getElementById('player-name-input');
+                            if (input) input.focus();
+                        }, 300);
+                    }
+                }, 1200);
+            } else {
+                showToast(`Welcome back, ${playerName}!`);
+            }
+            
+            setInterval(saveGame, 30000);
+            
+            // Start the in-game clock (every real second = 1 in-game minute)
+            updateGameClock();
+            setInterval(advanceGameMinute, 1000);
+            
+            // Keyboard
+            document.addEventListener('keydown', e => {
+                if (e.key.toLowerCase() === 's') { e.preventDefault(); sleepSequence(); }
+                if (e.key.toLowerCase() === 'p') { e.preventDefault(); talkToPete(); }
+            });
+        }
+        
+        function applyUpgrades() {
+            maxWaterUses = 20;
+            if (upgrades.waterCan) maxWaterUses = 25;
+            if (expansions.shed) maxWaterUses += 5;
+            if (expansions.extraField) growthBonus = Math.max(growthBonus, 0.15);
+            if (expansions.barn) sellMultiplier = 1.2;
+            else sellMultiplier = 1;
+        }
+        
+        // ==================== UI ====================
+        function getBackgroundUrl() {
+            let key = `${season}-${isNight?'night':'day'}-${weather}`;
+            if (weather === 'snow') key = 'winter-day-snow';
+            else if (weather === 'rain' && isNight) key = `${season}-night-clear`;
+            return BG_URLS[key] || BG_URLS[`${season}-day-clear`];
+        }
+        
+        function updateBackground() {
+            // Farm tab always uses the custom beautiful farm scene
+            const farmArea = document.getElementById('farm-area');
+            if (farmArea) {
+                farmArea.style.backgroundImage = `url('https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/j1fi7_orig.jpg')`;
+            }
+            
+            // House scene box shows dynamic day/night + season cycling images
+            const houseScene = document.getElementById('house-scene-box');
+            if (houseScene) {
+                houseScene.style.backgroundImage = `url('${getBackgroundUrl()}')`;
+            }
+        }
+        
+        function updateUI() {
+            document.getElementById('year-display').textContent = `Year ${year}`;
+            document.getElementById('season-display').innerHTML = `<img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/cloudy_orig.png" style="width:14px; height:14px; image-rendering:pixelated; vertical-align:middle; margin-right:4px;">${season.toUpperCase()}`;
+            document.getElementById('day-display').textContent = `Day ${day}`;
+            
+            const timeIcon = document.getElementById('time-icon');
+            const timeText = document.getElementById('time-display');
+            if (isNight) {
+                timeIcon.src = IMAGES.moon;
+                timeText.textContent = 'NIGHT';
+            } else {
+                timeIcon.src = IMAGES.coin;
+                timeText.textContent = 'DAY';
+            }
+            
+            let w = weather === 'clear' ? (isNight ? '□ Clear' : '☀️ Clear') : weather === 'rain' ? '□️ Rain' : '❄️ Snow';
+            document.getElementById('weather-display').innerHTML = w;
+            
+            document.getElementById('coins-display').textContent = inventory.coins;
+            document.getElementById('level-display').innerHTML = `LVL ${farmerLevel}`;
+            // pete-friendship now lives in House tab only
+            const peteEl = document.getElementById('pete-friendship');
+            if (peteEl) peteEl.textContent = peteFriendship;
+            
+            document.getElementById('seed-tomato-count').textContent = inventory.seeds.tomato;
+            document.getElementById('seed-carrot-count').textContent = inventory.seeds.carrot;
+            document.getElementById('seed-wheat-count').textContent = inventory.seeds.wheat;
+            
+            document.getElementById('inv-tomato').textContent = inventory.crops.tomato;
+            document.getElementById('inv-carrot').textContent = inventory.crops.carrot;
+            document.getElementById('inv-wheat').textContent = inventory.crops.wheat;
+            
+            document.getElementById('water-uses').textContent = waterUses;
+            
+            updateAllPlots();
+            updateModeButtons();
+            updateStoreUI();
+            updateGameClock();
+            
+            // Update House tab elements
+            const housePete = document.getElementById('house-pete-level');
+            if (housePete) housePete.textContent = peteFriendship;
+            
+            const houseExp = document.getElementById('house-expansions');
+            if (houseExp) {
+                const s = expansions.shed ? 'Yes' : 'No';
+                const e = expansions.extraField ? 'Yes' : 'No';
+                const b = expansions.barn ? 'Yes' : 'No';
+                houseExp.innerHTML = `Tool Shed: ${s} • Extra Field: ${e} • Barn: ${b}`;
+            }
+
+            // Update Main Quests in House tab
+            updateMainQuestsUI();
+        }
+        
+        function updateAllPlots() {
+            const grid = document.getElementById('farm-grid');
+            const els = grid.children;
+            
+            for (let i = 0; i < plots.length; i++) {
+                const p = plots[i];
+                const el = els[i];
+                if (!el) continue;
+                
+                el.innerHTML = '';
+                el.className = 'plot';
+                if (p.watered) el.classList.add('watered');
+                
+                if (p.type) {
+                    const img = document.createElement('img');
+                    img.className = 'crop-img';
+                    if (p.stage < 3) {
+                        img.src = IMAGES.seeds[p.type];
+                        img.style.width = `${38 + p.stage * 8}%`;
+                        img.style.opacity = 0.6 + p.stage * 0.12;
+                    } else {
+                        img.src = IMAGES.crops[p.type];
+                        img.style.width = '68%';
+                    }
+                    el.appendChild(img);
+                    
+                    if (p.stage < 3) {
+                        const barC = document.createElement('div');
+                        barC.className = 'growth-bar';
+                        const bar = document.createElement('div');
+                        bar.className = 'growth-fill';
+                        bar.style.width = `${(p.stage / 3) * 100}%`;
+                        barC.appendChild(bar);
+                        el.appendChild(barC);
+                    }
+                    
+                    if (p.watered) {
+                        const drop = document.createElement('div');
+                        drop.style.cssText = 'position:absolute;top:3px;right:3px;font-size:11px;';
+                        drop.textContent = '□';
+                        el.appendChild(drop);
+                    }
+                }
+            }
+        }
+        
+        function updateModeButtons() {
+            document.querySelectorAll('.seed-btn, .tool-btn').forEach(b => b.classList.remove('active'));
+            if (currentMode === 'water') document.getElementById('water-btn').classList.add('active');
+            else if (currentMode.startsWith('plant-')) {
+                const btn = document.querySelector(`.seed-btn[data-type="${currentMode.split('-')[1]}"]`);
+                if (btn) btn.classList.add('active');
+            }
+        }
+        
+        function updateStoreUI() {
+            // Update coins in store header
+            const sc = document.getElementById('store-coins');
+            if (sc) sc.textContent = inventory.coins;
+            
+            // Render pending deliveries
+            const list = document.getElementById('deliveries-list');
+            const countEl = document.getElementById('delivery-count');
+            if (!list || !countEl) return;
+            
+            countEl.textContent = deliveries.length;
+            
+            if (deliveries.length === 0) {
+                list.innerHTML = '<em style="color:#795548;">No pending deliveries. Buy something in the shop!</em>';
+                return;
+            }
+            
+            list.innerHTML = deliveries.map(d => {
+                const daysLeft = Math.max(0, d.arrivalDay - day);
+                const rushCost = 25;
+                return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:white; border:1px solid #5D4037; border-radius:4px; padding:4px 8px; margin-bottom:4px; font-size:9px;">
+                        <div>
+                            <strong>${d.label || d.item}</strong> 
+                            <span style="color:#FF9800;">→ Day ${d.arrivalDay}</span>
+                            ${daysLeft > 0 ? `(${daysLeft}d left)` : '(arriving today!)'}
+                        </div>
+                        <button onclick="rushDelivery(${d.id}, ${rushCost})" style="font-size:8px; padding:2px 8px; background:#FF9800; color:white; border:none; border-radius:3px; cursor:pointer;">
+                            Rush ${rushCost}¢
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function rushDelivery(id, cost) {
+            if (inventory.coins < cost) {
+                showToast('Not enough coins to rush delivery!');
+                return;
+            }
+            const idx = deliveries.findIndex(d => d.id === id);
+            if (idx === -1) return;
+            inventory.coins -= cost;
+            const d = deliveries[idx];
+            deliveries.splice(idx, 1);
+            
+            // Apply immediately
+            if (d.type === 'seed') {
+                inventory.seeds[d.item] = (inventory.seeds[d.item] || 0) + (d.qty || 1);
+                showToast(`⚡ Rushed delivery: ${d.label || d.item}!`);
+            } else if (d.type === 'upgrade') {
+                upgrades[d.item] = true;
+                applyUpgrades();
+                showToast(`⚡ Rushed delivery: ${d.item} upgrade!`);
+            } else if (d.type === 'expansion') {
+                expansions[d.item] = true;
+                applyUpgrades();
+                if (d.item === 'extraField') numFarms = 2;
+                showToast(`⚡ Rushed delivery: ${d.item} expansion!`);
+            }
+            updateUI();
+            updateStoreUI();
+            saveGame();
+        }
+        
+        function updateQuestsUI() {
+            const c = document.getElementById('quests-list');
+            c.innerHTML = '';
+            dailyQuests.forEach(q => {
+                const div = document.createElement('div');
+                div.className = 'quest-item';
+                const done = q.progress >= q.target;
+                div.innerHTML = `${q.text} <span style="float:right; color:${done?'#2E7D32':'#FF9800'};">${done?'✓':q.progress+'/'+q.target}</span>`;
+                c.appendChild(div);
+            });
+        }
+        
+        // ==================== TABS ====================
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            
+            document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+            
+            if (tab === 'journal') {
+                updateJournal();
+            } else if (tab === 'house') {
+                // House elements refreshed via updateUI but ensure
+                const housePete = document.getElementById('house-pete-level');
+                if (housePete) housePete.textContent = peteFriendship;
+            } else if (tab === 'store') {
+                updateStoreUI();
+            }
+        }
+        
+        function updateJournal() {
+            const container = document.getElementById('journal-entries');
+            if (!container) return;
+            if (!journalEntries || journalEntries.length === 0) {
+                container.innerHTML = '<em style="color:#795548;">No entries yet. Advance days or make big harvests to log your reign...</em>';
+                return;
+            }
+            container.innerHTML = journalEntries.map(entry => 
+                `<div style="margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed #A5D6A7;">
+                    <strong>Day ${entry.day}</strong> <span style="color:#5D4037; font-size:9px;">(Year ${Math.ceil(entry.day/28) || 1})</span><br>
+                    ${entry.text}
+                </div>`
+            ).join('');
+        }
+        
+        function addJournalEntry(text) {
+            if (!journalEntries) journalEntries = [];
+            journalEntries.unshift({ day: day, text: text });
+            if (journalEntries.length > 30) journalEntries.pop(); // keep recent
+            saveGame();
+            if (document.getElementById('tab-journal').classList.contains('active')) {
+                updateJournal();
+            }
+        }
+        
+        function writeJournalPrompt() {
+            const modal = document.getElementById('journal-entry-modal');
+            if (modal) {
+                modal.classList.add('show');
+                // Focus the textarea after modal opens
+                setTimeout(() => {
+                    const ta = document.getElementById('journal-text-input');
+                    if (ta) {
+                        ta.focus();
+                        ta.select();
+                    }
+                }, 150);
+            }
+        }
+        
+        function closeJournalModal() {
+            const modal = document.getElementById('journal-entry-modal');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        }
+        
+        function submitJournalEntry() {
+            const ta = document.getElementById('journal-text-input');
+            if (ta && ta.value.trim()) {
+                addJournalEntry(ta.value.trim());
+                showToast("Entry added to the Kingdom Journal.");
+                ta.value = '';
+            }
+            closeJournalModal();
+        }
+        
+        // ==================== GAMEPLAY ====================
+        function handlePlotClick(index) {
+            const plot = plots[index];
+            const el = document.getElementById('farm-grid').children[index];
+            
+            if (currentMode === 'water') {
+                if (plot.type && !plot.watered && waterUses > 0) {
+                    plot.watered = true;
+                    waterUses--;
+                    showToast('Watered! □');
+                    updateUI();
+                }
+            } else if (currentMode.startsWith('plant-')) {
+                const type = currentMode.split('-')[1];
+                if (!plot.type && inventory.seeds[type] > 0) {
+                    plot.type = type;
+                    plot.stage = 0;
+                    plot.watered = false;
+                    plot.plantedDay = day;
+                    inventory.seeds[type]--;
+                    showToast(`Planted ${type}!`);
+                    updateUI();
+                }
+            } else {
+                if (plot.type && plot.stage >= 3) {
+                    let amt = 1;
+                    if (upgrades.scythe) amt = 1 + Math.floor(Math.random()*2);
+                    inventory.crops[plot.type] += amt;
+                    totalCropsHarvested += amt;
+                    if (inventory.crops[plot.type] > bestHarvest[plot.type]) bestHarvest[plot.type] = inventory.crops[plot.type];
+                    
+                    plot.type = null;
+                    plot.stage = 0;
+                    plot.watered = false;
+                    showToast(`+${amt} ${plot.type || 'crop'} harvested!`);
+                    updateUI();
+                    checkQuestProgress();
+                    checkMainQuestProgress();
+                    
+                    // Small chance Pete encourages you after a good harvest
+                    if (Math.random() < 0.15) {
+                        setTimeout(() => showPeteEncouragement(), 800);
+                    }
+                }
+            }
+        }
+        
+        function selectPlantMode(type) {
+            currentMode = `plant-${type}`;
+            updateModeButtons();
+            document.getElementById('farm-grid').style.cursor = 'crosshair';
+        }
+        
+        function selectWaterMode() {
+            currentMode = 'water';
+            updateModeButtons();
+            document.getElementById('farm-grid').style.cursor = 'crosshair';
+        }
+        
+        function deselectMode() {
+            currentMode = 'default';
+            updateModeButtons();
+            document.getElementById('farm-grid').style.cursor = 'pointer';
+        }
+        
+        function harvestAllReady() {
+            let count = 0;
+            plots.forEach(p => {
+                if (p.type && p.stage >= 3) {
+                    let amt = upgrades.scythe ? 1 + Math.floor(Math.random()*2) : 1;
+                    inventory.crops[p.type] += amt;
+                    totalCropsHarvested += amt;
+                    if (inventory.crops[p.type] > bestHarvest[p.type]) bestHarvest[p.type] = inventory.crops[p.type];
+                    p.type = null; p.stage = 0; p.watered = false;
+                    count += amt;
+                }
+            });
+            if (count > 0) {
+                showToast(`Harvested ${count} crops!`);
+                updateUI();
+            }
+        }
+        
+        // ==================== SLEEP (Day/Night Cycle) ====================
+        function sleepSequence() {
+            const overlay = document.getElementById('sleep-overlay');
+            overlay.classList.add('show');
+            
+            setTimeout(() => {
+                isNight = true;
+                updateBackground();
+                updateUI();
+                
+                setTimeout(() => {
+                    const events = applyGrowthAndEvents();
+                    
+                    day++;
+                    totalDaysPlayed++;
+                    
+                    addJournalEntry(`Advanced to Day ${day} — ${seasonEmojis[season]} ${season.toUpperCase()}. The kingdom continues to thrive.`);
+                    
+                    if ((day-1) % 7 === 0) {
+                        const idx = seasons.indexOf(season);
+                        season = seasons[(idx + 1) % 4];
+                        if (season === 'spring') {
+                            year++;
+                            showToast(`□ Happy New Year! Welcome to Year ${year}!`);
+                        }
+                    }
+                    
+                    waterUses = maxWaterUses;
+                    isNight = false;
+                    
+                    // Reset in-game clock to morning when you sleep (new day starts at 6:00)
+                    gameHour = 6;
+                    gameMinute = 0;
+                    updateGameClock();
+                    
+                    generateDailyQuests();
+                    setRandomWeather();
+                    
+                    // Pete anger from neglect (not talking)
+                    if (day - lastTalkedDay > 4 && peteFriendship > 1) {
+                        peteFriendship = Math.max(1, peteFriendship - 1);
+                        events.push(`□ Pete feels ignored... (Friendship dropped)`);
+                    }
+                    
+                    processDeliveries();
+                    produceFromLivestock();
+                    
+                    updateBackground();
+                    updateUI();
+                    updateQuestsUI();
+                    saveGame();
+                    
+                    setTimeout(() => {
+                        overlay.classList.remove('show');
+                        if (events.length > 0) showEventModal(events);
+                        checkLevelUp();
+                        checkMainQuestProgress();
+                        
+                        // Random Pete encouragement (20% chance)
+                        if (Math.random() < 0.20) {
+                            setTimeout(() => showPeteEncouragement(), 1200);
+                        }
+                        
+                        // Random cat events
+                        if (!hasCat && Math.random() < 0.12) {
+                            setTimeout(() => showCatModal('found'), 1800);
+                        } else if (hasCat && Math.random() < 0.18 && !catModalOpen) {
+                            setTimeout(() => showCatModal('treats'), 1800);
+                        }
+                    }, 900);
+                    
+                }, 1100);
+            }, 800);
+        }
+        
+        function applyGrowthAndEvents() {
+            let events = [];
+            let dead = 0, grew = 0;
+            const bonus = (upgrades.almanac ? 0.12 : 0) + growthBonus;
+            
+            plots.forEach(p => {
+                if (!p.type) return;
+                const good = cropSeasons[p.type].includes(season);
+                
+                if (p.watered) {
+                    if (good || Math.random() < 0.32 + bonus) {
+                        p.stage = Math.min(3, p.stage + 1);
+                        grew++;
+                    } else if (Math.random() < 0.5) {
+                        p.type = null;
+                        dead++;
+                    }
+                } else {
+                    if ((good && Math.random() < 0.25 + bonus) || Math.random() < 0.1) {
+                        p.stage = Math.min(3, p.stage + 1);
+                        grew++;
+                    } else if (Math.random() < 0.55) {
+                        p.type = null;
+                        dead++;
+                    }
+                }
+                p.watered = false;
+            });
+            
+            if (dead > 0) events.push(`□ ${dead} crops withered.`);
+            if (grew > 5) events.push(`□ Great growth today!`);
+            
+            // Pete gets upset if too many crops die (neglect)
+            if (dead >= 5 && peteFriendship > 1 && Math.random() < 0.7) {
+                peteFriendship = Math.max(1, peteFriendship - 1);
+                events.push(`□ Pete is angry about the neglected crops! Friendship dropped.`);
+            }
+            
+            const r = Math.random();
+            if (r < 0.08) {
+                const t = ['tomato','carrot','wheat'][Math.floor(Math.random()*3)];
+                const a = Math.floor(Math.random()*2)+1;
+                if (inventory.crops[t] >= a) {
+                    inventory.crops[t] -= a;
+                    events.push(`□ Crows stole ${a} ${t}s!`);
+                }
+            } else if (r < 0.16) {
+                const b = Math.floor(Math.random()*15)+10;
+                inventory.coins += b;
+                totalCoinsEarned += b;
+                events.push(`✨ A traveler left you ${b} coins!`);
+            } else if (r < 0.23 && peteFriendship >= 2) {
+                let w = 0;
+                plots.forEach(p => { if (p.type && !p.watered) { p.watered = true; w++; } });
+                if (w > 0) events.push(`□‍□ Pete watered ${w} plots overnight!`);
+            }
+            
+            return events;
+        }
+        
+        function processDeliveries() {
+            if (!deliveries || deliveries.length === 0) return;
+            const arrived = [];
+            deliveries = deliveries.filter(d => {
+                if (d.arrivalDay <= day) {
+                    arrived.push(d);
+                    return false;
+                }
+                return true;
+            });
+            arrived.forEach(d => {
+                if (d.type === 'seed') {
+                    inventory.seeds[d.item] = (inventory.seeds[d.item] || 0) + (d.qty || 1);
+                    showToast(`□ Delivery arrived: ${d.qty || 1} ${d.item} seeds!`);
+                } else if (d.type === 'upgrade') {
+                    upgrades[d.item] = true;
+                    applyUpgrades();
+                    showToast(`□ Delivery arrived: ${d.item} upgrade!`);
+                } else if (d.type === 'expansion') {
+                    expansions[d.item] = true;
+                    applyUpgrades();
+                    if (d.item === 'extraField') numFarms = 2;
+                    showToast(`□ Delivery arrived: ${d.item} expansion!`);
+                }
+            });
+            if (arrived.length > 0) {
+                updateUI();
+                saveGame();
+            }
+        }
+        
+        // ==================== LIVESTOCK PRODUCTION (new important feature) ====================
+        function produceFromLivestock() {
+            let produced = [];
+            if (livestock.chicken > 0) {
+                const eggs = livestock.chicken + Math.floor(Math.random() * (livestock.chicken + 1));
+                animalProducts.egg = (animalProducts.egg || 0) + eggs;
+                produced.push(`${eggs} eggs`);
+            }
+            if (livestock.cow > 0) {
+                const milk = Math.max(1, Math.floor(livestock.cow * 0.8 + Math.random() * 2));
+                animalProducts.milk = (animalProducts.milk || 0) + milk;
+                produced.push(`${milk} milk`);
+            }
+            if (livestock.pig > 0) {
+                const pork = Math.floor(livestock.pig * 0.6) + (Math.random() < 0.4 ? 1 : 0);
+                if (pork > 0) {
+                    animalProducts.pork = (animalProducts.pork || 0) + pork;
+                    produced.push(`${pork} pork`);
+                }
+            }
+            if (produced.length > 0) {
+                showToast(`□ Livestock produced: ${produced.join(', ')}!`);
+            }
+        }
+        
+        function setRandomWeather() {
+            weather = (season === 'winter') ? (Math.random() < 0.55 ? 'snow' : 'clear') : (Math.random() < 0.3 ? 'rain' : 'clear');
+        }
+        
+        function toggleDayNight() {
+            isNight = !isNight;
+            updateBackground();
+            updateUI();
+        }
+        
+        // ==================== IN-GAME CLOCK (1 real sec = 1 in-game minute) ====================
+        function updateGameClock() {
+            const el = document.getElementById('game-time-text');
+            if (!el) return;
+            const h = String(gameHour).padStart(2, '0');
+            const m = String(gameMinute).padStart(2, '0');
+            el.textContent = `${h}:${m}`;
+            
+            // Auto day/night based on clock (optional enhancement, doesn't break manual toggle)
+            const shouldBeNight = (gameHour >= 20 || gameHour < 6);
+            if (shouldBeNight !== isNight) {
+                isNight = shouldBeNight;
+                updateBackground();
+                // Don't call full updateUI here to avoid loops
+            }
+        }
+        
+        function advanceGameMinute() {
+            gameMinute++;
+            if (gameMinute >= 60) {
+                gameMinute = 0;
+                gameHour = (gameHour + 1) % 24;
+            }
+            updateGameClock();
+            // Occasionally show time-based toast (very rare)
+            if (gameMinute === 0 && gameHour === 12 && Math.random() < 0.1) {
+                showToast("It's noon in the kingdom!");
+            }
+        }
+        
+        // ==================== PETE ====================
+        function talkToPete() {
+            lastTalkedDay = day;
+            document.getElementById('pete-modal').classList.add('show');
+            let greet = `Howdy, ${playerName}! What can I do for the kingdom today?`;
+            if (peteFriendship <= 2) {
+                greet = `Hmph... What do you want, ${playerName}? The farm better be in shape.`;
+            }
+            document.getElementById('pete-dialogue').innerHTML = greet;
+            document.getElementById('pete-level-modal').textContent = peteFriendship;
+        }
+        
+        function closePeteModal() {
+            document.getElementById('pete-modal').classList.remove('show');
+        }
+        
+        function peteGiveAdvice() {
+            let tips;
+            if (peteFriendship <= 2) {
+                tips = [
+                    "Hmph. Water your crops... if you even care.",
+                    "Don't waste my time with questions you ignore the answers to.",
+                    "The farm looks neglected. Fix it.",
+                    "Buy upgrades? Maybe start by not killing everything first."
+                ];
+            } else {
+                tips = [
+                    "Water every day for the best harvests, Your Majesty.",
+                    "Tomatoes grow best in spring and summer.",
+                    "Sleep regularly — your crops grow while you rest!",
+                    "Visit the Store tab often to buy upgrades."
+                ];
+            }
+            document.getElementById('pete-dialogue').innerHTML = tips[Math.floor(Math.random()*tips.length)];
+        }
+        
+        function peteTellJoke() {
+            const jokes = [
+                "Why did the scarecrow become king? Because he was outstanding in his field!",
+                "What do you call a potato that tells jokes? A comedi-tater!",
+                "Why don't farmers ever get lost? They always follow the right path... of crops!"
+            ];
+            document.getElementById('pete-dialogue').innerHTML = jokes[Math.floor(Math.random()*jokes.length)];
+        }
+        
+        function peteGiveGift() {
+            if (peteFriendship <= 2) {
+                document.getElementById('pete-dialogue').innerHTML = "Hmph. No gifts for someone who neglects the kingdom.";
+                setTimeout(() => {
+                    closePeteModal();
+                    showToast("Pete refused to give a gift. (Friendship too low)");
+                }, 1400);
+                return;
+            }
+            const type = ['tomato','carrot','wheat'][Math.floor(Math.random()*3)];
+            const amt = 2;
+            inventory.seeds[type] += amt;
+            peteFriendship = Math.min(5, peteFriendship + 1);
+            document.getElementById('pete-dialogue').innerHTML = `Here are ${amt} ${type} seeds for the kingdom!`;
+            setTimeout(() => {
+                closePeteModal();
+                showToast(`Pete gifted you ${amt} ${type} seeds!`);
+                updateUI();
+            }, 1200);
+        }
+        
+        // ==================== PETE ENCOURAGEMENT & CAT ====================
+        const encouragementMessages = [
+            "Good job on that harvest, Your Majesty! The kingdom is proud of you.",
+            "Excellent work today! Your fields are looking wonderful.",
+            "You're becoming quite the skilled farmer. Keep it up!",
+            "The crops are thriving under your care. Well done!",
+            "A fine day of farming! Pete is impressed with your dedication.",
+            "Your kingdom is growing stronger every day. Great job!",
+            "Those tomatoes look juicy! You're a natural at this."
+        ];
+        
+        function showPeteEncouragement() {
+            const modal = document.getElementById('encouragement-modal');
+            const textEl = document.getElementById('encouragement-text');
+            if (!modal || !textEl) return;
+            
+            const msg = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+            textEl.innerHTML = msg;
+            modal.classList.add('show');
+        }
+        
+        function closeEncouragementModal() {
+            const modal = document.getElementById('encouragement-modal');
+            if (modal) modal.classList.remove('show');
+        }
+        
+        let catModalOpen = false;
+        
+        function showCatModal(type = 'found') {
+            const modal = document.getElementById('cat-modal');
+            const title = document.getElementById('cat-modal-title');
+            const subtitle = document.getElementById('cat-modal-subtitle');
+            const body = document.getElementById('cat-modal-body');
+            const buttonsContainer = document.getElementById('cat-modal-buttons');
+            if (!modal || !title || !body || !buttonsContainer) return;
+            
+            catModalOpen = true;
+            
+            if (type === 'found') {
+                title.textContent = '□ You Found a Cat!';
+                subtitle.textContent = 'A friendly stray appears...';
+                body.innerHTML = `You discovered a cute stray cat near the barn! It looks hungry and a bit scared.<br><br>Will you take it in?`;
+                buttonsContainer.innerHTML = `
+                    <button onclick="adoptCat()" style="background:#4CAF50; color:white; border:none; padding:8px 18px; border-radius:6px; font-size:12px; cursor:pointer;">Yes, adopt the cat! □</button>
+                    <button onclick="closeCatModal()" style="background:#795548; color:white; border:none; padding:8px 18px; border-radius:6px; font-size:12px; cursor:pointer;">Leave it be</button>
+                `;
+            } else if (type === 'treats') {
+                title.textContent = '□ The Cat Wants Treats!';
+                subtitle.textContent = 'Purr... meow?';
+                body.innerHTML = `Your cat is rubbing against your legs and looking at you with big eyes.<br>It seems to want some treats!`;
+                buttonsContainer.innerHTML = `
+                    <button onclick="giveCatTreats()" style="background:#FF9800; color:white; border:none; padding:8px 18px; border-radius:6px; font-size:12px; cursor:pointer;">Give treats (5¢)</button>
+                    <button onclick="ignoreCat()" style="background:#795548; color:white; border:none; padding:8px 18px; border-radius:6px; font-size:12px; cursor:pointer;">Not today</button>
+                `;
+            }
+            
+            modal.classList.add('show');
+        }
+        
+        function closeCatModal() {
+            const modal = document.getElementById('cat-modal');
+            if (modal) modal.classList.remove('show');
+            catModalOpen = false;
+        }
+        
+        function adoptCat() {
+            hasCat = true;
+            closeCatModal();
+            showToast('□ You adopted the stray cat! It will stay around the farm.');
+            addJournalEntry('Adopted a friendly stray cat. The farm feels a little less lonely now.');
+            // Small bonus
+            inventory.coins += 10;
+            updateUI();
+        }
+        
+        function giveCatTreats() {
+            if (inventory.coins < 5) {
+                showToast('Not enough coins for treats!');
+                closeCatModal();
+                return;
+            }
+            inventory.coins -= 5;
+            catTreatsGiven++;
+            closeCatModal();
+            
+            const responses = [
+                'The cat purrs happily and rubs against your hand!',
+                'Your cat looks very content after the treats.',
+                'The cat does a little happy dance! You feel good.',
+                'Treats given! The cat seems to like you more.'
+            ];
+            showToast(responses[Math.floor(Math.random()*responses.length)]);
+            
+            // Occasional small reward
+            if (Math.random() < 0.4) {
+                const bonus = Math.floor(Math.random()*8) + 3;
+                inventory.coins += bonus;
+                showToast(`The cat brought you a small gift worth ${bonus} coins!`);
+            }
+            updateUI();
+        }
+        
+        function ignoreCat() {
+            closeCatModal();
+            if (Math.random() < 0.3) {
+                showToast('The cat looks a little sad but wanders off for now...');
+            } else {
+                showToast('The cat will ask again another day.');
+            }
+        }
+
+        // ==================== MAIN QUESTLINE FUNCTIONS ====================
+        function updateMainQuestsUI() {
+            const container = document.getElementById('main-quests-list');
+            if (!container) return;
+
+            container.innerHTML = mainQuests.map(q => {
+                const done = q.completed;
+                const percent = Math.min(100, Math.floor((q.progress / q.target) * 100));
+                
+                return `
+                    <div style="margin-bottom: 8px; padding: 6px 10px; background: white; border: 2px solid ${done ? '#2E7D32' : '#5D4037'}; border-radius: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: ${done ? '#2E7D32' : '#3E2723'};">${q.title}</strong>
+                            <span style="font-size: 10px; color: ${done ? '#2E7D32' : '#FF9800'};">${done ? '✓ Complete' : q.progress + '/' + q.target}</span>
+                        </div>
+                        <div style="font-size: 10px; color: #795548; margin: 3px 0 5px;">${q.description}</div>
+                        
+                        ${!done ? `
+                        <div style="background: #EFEBE9; height: 6px; border-radius: 3px; overflow: hidden;">
+                            <div style="width: ${percent}%; height: 100%; background: #4CAF50; transition: width 0.3s;"></div>
+                        </div>` : ''}
+                        
+                        ${done ? `<div style="font-size: 9px; color: #2E7D32; margin-top: 4px;">Reward: ${q.reward}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function checkMainQuestProgress() {
+            let changed = false;
+
+            mainQuests.forEach(q => {
+                if (q.completed) return;
+
+                if (q.id === 'reclaim_fields') {
+                    const totalHarvested = totalCropsHarvested;
+                    if (totalHarvested > q.progress) {
+                        q.progress = Math.min(q.target, totalHarvested);
+                        changed = true;
+                    }
+                }
+
+                if (q.id === 'expand_kingdom') {
+                    const hasAnyExpansion = expansions.shed || expansions.extraField || expansions.barn;
+                    if (hasAnyExpansion && q.progress < 1) {
+                        q.progress = 1;
+                        changed = true;
+                    }
+                }
+
+                if (q.id === 'befriend_pete') {
+                    if (peteFriendship > q.progress) {
+                        q.progress = Math.min(q.target, peteFriendship);
+                        changed = true;
+                    }
+                }
+
+                if (q.id === 'royal_harvest') {
+                    if (totalCropsHarvested > q.progress) {
+                        q.progress = Math.min(q.target, totalCropsHarvested);
+                        changed = true;
+                    }
+                }
+
+                if (q.id === 'crown_the_kingdom') {
+                    const allExpansions = expansions.shed && expansions.extraField && expansions.barn;
+                    if (farmerLevel >= 8 && allExpansions && q.progress < 1) {
+                        q.progress = 1;
+                        changed = true;
+                    }
+                }
+
+                // Auto-complete if progress meets target
+                if (!q.completed && q.progress >= q.target) {
+                    q.completed = true;
+                    changed = true;
+                    giveQuestReward(q);
+                }
+            });
+
+            if (changed) {
+                updateMainQuestsUI();
+                saveGame();
+            }
+        }
+
+        function giveQuestReward(quest) {
+            if (quest.id === 'reclaim_fields') {
+                inventory.coins += 10;
+                peteFriendship = Math.min(5, peteFriendship + 1);
+                showToast('Quest Complete! +10 coins & Pete friendship increased');
+            } 
+            else if (quest.id === 'expand_kingdom') {
+                showToast('Quest Complete! Kingdom is growing!');
+            } 
+            else if (quest.id === 'befriend_pete') {
+                inventory.seeds.tomato += 5;
+                inventory.seeds.carrot += 5;
+                showToast('Pete gave you special seeds as thanks!');
+            } 
+            else if (quest.id === 'royal_harvest') {
+                if (!upgrades.scythe) upgrades.scythe = true;
+                showToast('Golden Scythe unlocked as reward!');
+            } 
+            else if (quest.id === 'crown_the_kingdom') {
+                showEndingModal();
+            }
+
+            addJournalEntry(`Completed Kingdom Legacy goal: ${quest.title}`);
+        }
+
+        function submitPlayerName() {
+            const input = document.getElementById('player-name-input');
+            if (!input) return;
+            
+            let name = input.value.trim();
+            if (!name) name = "Your Majesty";
+            
+            playerName = name;
+            
+            // Close modal
+            const modal = document.getElementById('name-entry-modal');
+            if (modal) modal.classList.remove('show');
+            
+            // Welcome message
+            setTimeout(() => {
+                showToast(`Welcome to the kingdom, ${playerName}!`);
+                addJournalEntry(`The adventure begins! ${playerName} has arrived to restore the Harvest Kingdom.`);
+                
+                // Pete greets them by name
+                setTimeout(() => {
+                    const peteModal = document.getElementById('pete-modal');
+                    if (peteModal) {
+                        peteModal.classList.add('show');
+                        document.getElementById('pete-dialogue').innerHTML = 
+                            `Howdy, ${playerName}! It's great to finally meet you properly. Let's make this kingdom thrive together!`;
+                    }
+                }, 1200);
+            }, 600);
+            
+            saveGame();
+            updateUI();
+        }
+        
+        function changePlayerName() {
+            // Close the stats modal first
+            const statsModal = document.querySelector('.modal.show');
+            if (statsModal) statsModal.remove();
+            
+            // Open the name entry modal
+            setTimeout(() => {
+                const nameModal = document.getElementById('name-entry-modal');
+                if (nameModal) {
+                    nameModal.classList.add('show');
+                    setTimeout(() => {
+                        const input = document.getElementById('player-name-input');
+                        if (input) {
+                            input.value = playerName || '';
+                            input.focus();
+                            input.select();
+                        }
+                    }, 200);
+                }
+            }, 300);
+        }
+
+        function showEndingModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 480px; text-align: center;">
+                    <div class="modal-header" style="background: linear-gradient(#FFD700, #FFA000); color: #3E2723;">
+                        <span style="font-size: 28px;">□</span>
+                        <h2 style="margin: 0; font-size: 20px;">Kingdom Restored!</h2>
+                    </div>
+                    <div style="padding: 24px 20px; font-size: 14px; line-height: 1.6;">
+                        <p>Congratulations, Your Majesty!</p>
+                        <p>You have successfully restored the Kingdom to its former glory.</p>
+                        <p style="margin-top: 16px; font-size: 13px; color: #5D4037;">
+                            Through dedication, friendship with Pete, and care for the land,<br>
+                            you have become a true ruler of the harvest.
+                        </p>
+                        <div style="margin: 20px 0; font-size: 15px;">
+                            <strong>You are now known as:</strong><br>
+                            <span style="color: #B8860B; font-size: 18px;">The Royal Farmer of Harvest Kingdom</span>
+                        </div>
+                    </div>
+                    <div style="padding: 14px; background: #EFEBE9;">
+                        <button onclick="this.closest('.modal').remove()" 
+                                style="background: #FFD700; color: #3E2723; border: 3px solid #B8860B; padding: 10px 30px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: bold;">
+                            Long Live the Kingdom! □
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function buyWithDelivery(category, item, qty, express) {
+            let basePrice = 0;
+            let label = '';
+            
+            if (category === 'seed') {
+                basePrice = seedPrices[item] * qty;
+                label = `${qty} ${item} seeds`;
+            } else if (category === 'upgrade') {
+                if (upgrades[item]) { showToast('Already owned that upgrade!'); return; }
+                basePrice = {waterCan:150, scythe:280, almanac:420}[item] || 200;
+                label = item;
+                qty = 1;
+            } else if (category === 'expansion') {
+                if (expansions[item]) { showToast('You already own this expansion!'); return; }
+                basePrice = {shed:200, barn:350, extraField:450}[item] || 300;
+                label = item;
+                qty = 1;
+            }
+            
+            let finalCost = basePrice;
+            if (express) finalCost = Math.ceil(basePrice * 1.3);
+            
+            if (inventory.coins < finalCost) {
+                showToast('Not enough coins for this purchase!');
+                return;
+            }
+            
+            inventory.coins -= finalCost;
+            
+            if (express) {
+                // Instant apply
+                if (category === 'seed') {
+                    inventory.seeds[item] = (inventory.seeds[item] || 0) + qty;
+                    showToast(`⚡ Express delivered: ${label}!`);
+                } else if (category === 'upgrade') {
+                    upgrades[item] = true;
+                    applyUpgrades();
+                    showToast(`⚡ Express delivered: ${label} upgrade!`);
+                } else if (category === 'expansion') {
+                    expansions[item] = true;
+                    applyUpgrades();
+                    if (item === 'extraField') numFarms = 2;
+                    showToast(`⚡ Express delivered: ${label} expansion!`);
+                }
+                updateUI();
+                updateStoreUI();
+            } else {
+                // Queue for delivery (arrives next day)
+                const arrival = day + 1;
+                deliveries.push({
+                    id: Date.now(),
+                    type: category,
+                    item: item,
+                    qty: qty,
+                    arrivalDay: arrival,
+                    label: label
+                });
+                showToast(`□ Order placed! ${label} will arrive on Day ${arrival}.`);
+                updateStoreUI();
+            }
+            saveGame();
+        }
+        
+        // ==================== BUY ANIMALS (new feature) ====================
+        function buyAnimal(type) {
+            const prices = {chicken: 60, cow: 140, pig: 95};
+            const price = prices[type] || 100;
+            if (inventory.coins < price) {
+                showToast('Not enough coins to buy this animal!');
+                return;
+            }
+            inventory.coins -= price;
+            livestock[type] = (livestock[type] || 0) + 1;
+            const names = {chicken: 'Chicken', cow: 'Cow', pig: 'Pig'};
+            showToast(`□ Bought a ${names[type]} for ${price}¢! It will produce goods daily.`);
+            updateUI();
+            saveGame();
+        }
+        
+        // Legacy wrappers (for safety)
+        function buySeeds(type, qty) { buyWithDelivery('seed', type, qty || 1, false); }
+        function buyUpgrade(type) { buyWithDelivery('upgrade', type, 1, false); }
+        
+        // ==================== QUESTS ====================
+        function generateDailyQuests() {
+            dailyQuests = [];
+            const types = ['tomato','carrot','wheat'];
+            const t1 = types[Math.floor(Math.random()*3)];
+            dailyQuests.push({id:'harvest', type:t1, target: Math.floor(Math.random()*3)+3, progress:0, text:`Harvest ${Math.floor(Math.random()*3)+3} ${t1}s`});
+            dailyQuests.push({id:'coins', target: Math.floor(Math.random()*35)+40, progress:0, text:`Earn ${Math.floor(Math.random()*35)+40} coins today`});
+            const t2 = types[Math.floor(Math.random()*3)];
+            dailyQuests.push({id:'plant', type:t2, target: Math.floor(Math.random()*2)+3, progress:0, text:`Plant ${Math.floor(Math.random()*2)+3} ${t2} seeds`});
+        }
+        
+        function checkQuestProgress() {
+            let changed = false;
+            dailyQuests.forEach(q => {
+                if (q.progress >= q.target) return;
+                if (q.id === 'harvest' && q.type) {
+                    const cur = inventory.crops[q.type] || 0;
+                    if (cur > q.progress) { q.progress = Math.min(q.target, cur); changed = true; }
+                }
+                if (q.id === 'plant' && q.type) {
+                    let planted = 0;
+                    plots.forEach(p => { if (p.type === q.type) planted++; });
+                    if (planted > q.progress) { q.progress = Math.min(q.target, planted); changed = true; }
+                }
+            });
+            if (changed) {
+                updateQuestsUI();
+                dailyQuests.forEach(q => {
+                    if (q.progress >= q.target && q.reward === undefined) {
+                        const rew = 30;
+                        inventory.coins += rew;
+                        totalCoinsEarned += rew;
+                        q.reward = 0;
+                        showToast(`Quest complete! +${rew} coins`);
+                    }
+                });
+                updateUI();
+            }
+        }
+        
+        function sellCrop(type) {
+            if (inventory.crops[type] > 0) {
+                inventory.crops[type]--;
+                const earned = cropPrices[type];
+                inventory.coins += earned;
+                totalCoinsEarned += earned;
+                showToast(`Sold 1 ${type} for ${earned} coins`);
+                updateUI();
+                checkLevelUp();
+            }
+        }
+        
+        function checkLevelUp() {
+            const newLvl = Math.floor(totalCoinsEarned / 160) + 1;
+            if (newLvl > farmerLevel) {
+                farmerLevel = newLvl;
+                showToast(`□ Level Up! You are now Level ${farmerLevel}!`);
+                addJournalEntry(`Achieved Farmer Level ${farmerLevel}! The kingdom prospers under your rule.`);
+                updateUI();
+            }
+        }
+        
+        // ==================== MODALS ====================
+        function showEventModal(events) {
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width:440px;">
+                    <div class="modal-header" style="background:#D32F2F;">
+                        <span style="font-size:22px;">□</span>
+                        <h2 style="margin:0; font-size:15px;">Kingdom News</h2>
+                    </div>
+                    <div style="padding:16px;">
+                        <ul style="list-style:none; font-size:12px; line-height:1.5;">
+                            ${events.map(e => `<li style="margin-bottom:6px;">${e}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div style="padding:10px; text-align:center; background:#EFEBE9;">
+                        <button onclick="this.closest('.modal').remove()" style="background:#D32F2F; color:white; border:none; padding:7px 20px; border-radius:6px; font-size:10px; cursor:pointer;">Understood</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function showStatsModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            let value = inventory.coins + inventory.crops.tomato*8 + inventory.crops.carrot*5 + inventory.crops.wheat*3;
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header" style="background:#1565C0;">
+                        <span style="font-size:22px;">□</span>
+                        <h2 style="margin:0; font-size:16px;">Kingdom Statistics</h2>
+                    </div>
+                    
+                    <div style="text-align:center; padding:10px 16px 0; font-size:14px; color:#2E7D32; font-weight:bold;">
+                        □ ${playerName}
+                    </div>
+                    
+                    <div style="padding:16px; font-size:12px; line-height:1.6;">
+                        <div style="display:flex; justify-content:space-between;"><span>Farmer Level</span> <strong>${farmerLevel}</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>Days Played</span> <strong>${totalDaysPlayed}</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>Total Coins Earned</span> <strong>${totalCoinsEarned}</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>Crops Harvested</span> <strong>${totalCropsHarvested}</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>Best Tomato Harvest</span> <strong>${bestHarvest.tomato}</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>Livestock</span> <strong>□ ${livestock.chicken} □ ${livestock.cow} □ ${livestock.pig}</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>Animal Products</span> <strong>Eggs:${animalProducts.egg} Milk:${animalProducts.milk} Pork:${animalProducts.pork}</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>Current Farm Value</span> <strong>${value}</strong></div>
+                    </div>
+                    <div style="padding:10px; text-align:center; background:#EFEBE9; border-top: 3px solid #5D4037;">
+                        <button onclick="resetGame()" style="background:#c62828; color:white; border:3px solid #b71c1c; padding:6px 14px; border-radius:6px; font-size:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; margin-bottom:6px;">
+                            <img src="https://www.gamecircuit.co.uk/uploads/1/5/2/9/152994747/power-button_orig.png" style="width:16px; height:16px; image-rendering:pixelated;">
+                            Reset Game (Start Fresh)
+                        </button>
+                        
+                        <button onclick="changePlayerName()" style="background:#4CAF50; color:white; border:3px solid #2E7D32; padding:6px 14px; border-radius:6px; font-size:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; margin-bottom:6px;">
+                            ✏️ Change My Gamertag
+                        </button>
+                        
+                        <div style="font-size:8px; color:#795548; margin-bottom:6px;">You can change your name anytime • Reset erases everything</div>
+                        
+                        <button onclick="this.closest('.modal').remove()" style="background:#1565C0; color:white; border:none; padding:6px 18px; border-radius:5px; font-size:10px; cursor:pointer;">Close</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function showDailyReport() {
+            const modal = document.getElementById('daily-report-modal');
+            if (!modal) return;
+            
+            // Populate time and basic info
+            document.getElementById('report-time').innerHTML = `Day ${day} • ${season.toUpperCase()} • ${isNight ? 'NIGHT' : 'DAYTIME'}`;
+            document.getElementById('report-time-of-day').innerHTML = isNight ? 'NIGHTTIME' : 'DAYTIME';
+            document.getElementById('report-weather').innerHTML = weather === 'clear' ? (isNight ? '□ Clear skies' : '☀️ Clear and bright') : (weather === 'rain' ? '□️ Rainy' : '❄️ Snowy');
+            
+            // Farm status
+            let ready = 0, growing = 0, empty = 0;
+            plots.forEach(p => {
+                if (!p.type) empty++;
+                else if (p.stage >= 3) ready++;
+                else growing++;
+            });
+            document.getElementById('report-farm-status').innerHTML = 
+                `${ready} plots ready to harvest • ${growing} crops growing • ${empty} empty plots<br>` +
+                `Farms: ${numFarms} • Water uses left: ${waterUses}/${maxWaterUses} • Coins: ${inventory.coins}`;
+            
+            // Quests
+            const qDiv = document.getElementById('report-quests');
+            qDiv.innerHTML = dailyQuests.map(q => {
+                const done = q.progress >= q.target;
+                return `${q.text} <span style="color:${done ? '#2E7D32' : '#FF9800'};">${done ? '✓ Done' : q.progress + '/' + q.target}</span>`;
+            }).join('<br>');
+            
+            // Events / news (last sleep events or generic)
+            const eDiv = document.getElementById('report-events');
+            eDiv.innerHTML = 'The kingdom is peaceful. Check the Journal for your full legacy.<br><span style="font-size:9px;">(Events from the last night appear in the toast &amp; popups)</span>';
+            
+            modal.classList.add('show');
+        }
+        
+        function closeDailyReport() {
+            const modal = document.getElementById('daily-report-modal');
+            if (modal) modal.classList.remove('show');
+        }
+        
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            setTimeout(() => {
+                t.style.transition = 'opacity .4s';
+                t.style.opacity = '0';
+                setTimeout(() => { t.style.display='none'; t.style.opacity='1'; t.style.transition=''; }, 350);
+            }, 2400);
+        }
+        
+        function manualSave() {
+            saveGame();
+            showToast('Game progress saved locally!');
+        }
+        
+        function resetGame() {
+            // Legacy - now opens the nice modal instead
+            showResetModal();
+        }
+        
+        function showResetModal() {
+            const modal = document.getElementById('reset-modal');
+            if (modal) modal.classList.add('show');
+        }
+        
+        function closeResetModal() {
+            const modal = document.getElementById('reset-modal');
+            if (modal) modal.classList.remove('show');
+        }
+        
+        function doResetGame() {
+            closeResetModal();
+            localStorage.removeItem('harvestKingdomSave');
+            showToast('Kingdom has been reset. Starting fresh...');
+            setTimeout(() => {
+                location.reload();
+            }, 900);
+        }
+        
+        // ==================== BOOT ====================
+        window.onload = function() {
+            initGame();
+        };
+        
+        window.onbeforeunload = function() {
+            saveGame();
+        };
+    </script>
+</body>
+</html>
